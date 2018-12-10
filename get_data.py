@@ -2,7 +2,7 @@
 Script créant un jeu de données des pistes contenues dans différentes playlists.
 Pour chaque chanson, ses caractéristiques audio sont ajoutées.
 """
-import json
+
 import spotipy
 import spotipy.util as util
 import pandas as pd
@@ -81,8 +81,9 @@ mysecret = 'secretid'
 client_credentials_manager = SpotifyClientCredentials(client_id=myid, client_secret=mysecret)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
+
 def get_playlist_tracks(username,playlist_id):
-    results = sp.user_playlist_tracks(username,playlist_id)
+    results = sp.user_playlist_tracks(username, playlist_id)
     tracks = results['items']
     while results['next']:
         results = sp.next(results)
@@ -96,8 +97,6 @@ def get_playlists():
     for playlist in playlists:
         print("############### " + str(playlist['Genre']) + " ###############")
         list_songs = get_playlist_tracks("spotify", str(playlist['URL']))
-        #with open('exportliste.json', 'w') as outfile:
-        #    json.dump(list_songs, outfile)
         for song in list_songs:
             artist = (str(song['track']['artists'][0]['name']))
             title = (str(song['track']['name']))
@@ -109,20 +108,17 @@ def get_playlists():
             audio_features = sp.audio_features(uri)[0]
 
             df = df.append({"artiste": artist, "titre": title, "popularite": popularity, "uri": uri, "genre": str(playlist['Genre']), **audio_features}, ignore_index=True)
-            #with open('export.json', 'w') as outfile:
-            #    json.dump(song, outfile)
     return df
 
 
 def main():
     # Noms ordonnés des colonnes
-    columns = ['artiste', 'titre', 'genre', 'danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo', 'duration_ms', 'time_signature']
-
+    columns = ['artiste', 'titre', 'popularite', 'genre', 'danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo', 'duration_ms', 'time_signature']
     df = get_playlists()
-
     df = df[columns]
     df.to_excel('export_full.xlsx')
     print(df.groupby('genre').count())
+
 
 if __name__ == "__main__":
     main()
